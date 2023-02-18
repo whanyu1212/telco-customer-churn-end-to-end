@@ -1,0 +1,17 @@
+data_local_directory: 
+  path: ./data/telco_customer_churn.csv
+
+split_size:
+  0.2
+
+RS:
+  42
+
+project_id:
+  sacred-garden-369506
+
+dataset_id:
+  personal_project
+
+table_id:
+  telco-customer_churn

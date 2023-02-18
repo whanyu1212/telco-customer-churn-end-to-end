@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "telco-customer-churn-proj"
+version = "0.1.0"
+description = ""
+authors = ["Hanyu Wu whanyu1212@hotmail.com"]
+readme = "README.md"
+packages = [{include = "telco_customer_churn_proj"}]
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.9.7 || >3.9.7,<4.0"
+pandas = "^1.5.2"
+numpy = "^1.24.1"
+seaborn = "^0.12.2"
+matplotlib = "^3.6.2"
+sklearn = "^0.0.post1"
+pandera = "^0.13.4"
+opendatasets = "^0.1.22"
+xgboost = "^1.7.3"
+prefect = "^2.7.7"
+mlflow = "^2.1.1"
+streamlit = "^1.16.0"
+google-cloud-bigquery = "^3.4.1"
+db-dtypes = "^1.0.5"
+shap = "^0.41.0"
+black = "^22.12.0"
+jinjasql = "^0.1.8"
+flask = "^2.2.2"
+jinja2 = "3.0.3"
+dash = "^2.7.1"
+plotly = "^5.11.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
