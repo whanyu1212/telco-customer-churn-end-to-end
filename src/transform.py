@@ -2,6 +2,7 @@ import pandas as pd
 from prefect import flow, task
 from typing import Dict
 from sklearn import preprocessing
+from util import parse_cfg
 
 @task
 def generate_dummy_variables(df:pd.DataFrame, cat_columns: list) -> pd.DataFrame:
@@ -35,6 +36,9 @@ def combine_dummy_n_numeric(df_dummies:pd.DataFrame,df:pd.DataFrame) -> pd.DataF
 
 @flow(name="data-cleaning")
 def data_cleaning():
+    cfg = parse_cfg()
+    cat_columns = cfg['cat_columns']
+    df = pd.read_csv('./data/telco_customer_churn_coerced.csv')
     df_dummies = generate_dummy_variables(df,cat_columns)
     df_final = combine_dummy_n_numeric(df_dummies,df)
     return df_final
@@ -42,17 +46,5 @@ def data_cleaning():
 
 
 
-
-
-
-
-
-
 if __name__ == "__main__":
-    df = pd.read_csv('./data/telco_customer_churn_coerced.csv')
-    cat_columns = ['gender', 'Partner', 'Dependents',
-    'PhoneService','MultipleLines','InternetService',
-    'OnlineSecurity','OnlineBackup','DeviceProtection',
-    'TechSupport','StreamingTV','StreamingMovies',
-    'Contract','PaperlessBilling','PaymentMethod']
     data_cleaning()

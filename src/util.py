@@ -1,5 +1,20 @@
 import pandera as pa
+import yaml
+from typing import Dict
 from pandera import Column, DataFrameSchema, Check
+
+
+def parse_cfg() -> Dict:
+    """Reading in the config
+
+    Returns:
+        dict: with keys representing the parameters
+    """
+    with open("./config/catalog.yml", "r", encoding="utf-8") as yamlfile:
+        cfg = yaml.load(yamlfile, Loader=yaml.FullLoader)
+    return cfg
+
+
 
 out_schema = DataFrameSchema(
     {

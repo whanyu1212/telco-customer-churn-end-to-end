@@ -1,25 +1,12 @@
-import yaml
 import pandas as pd
 import pandera as pa
 from prefect import flow, task
 from jinjasql import JinjaSql
 from google.cloud import bigquery
-from pandera import check_output
 from typing import Dict
+from pandera import check_output
 from query_template import BQ_QUERY_TEMPLATE
-from util import out_schema
-
-
-@task
-def parse_cfg() -> Dict:
-    """Reading in the config
-
-    Returns:
-        dict: with keys representing the parameters
-    """
-    with open("./config/catalog.yml", "r", encoding="utf-8") as yamlfile:
-        cfg = yaml.load(yamlfile, Loader=yaml.FullLoader)
-    return cfg
+from util import out_schema, parse_cfg
 
 
 @task
@@ -45,8 +32,7 @@ def fetch_bq_data(cfg: Dict) -> pd.DataFrame:
 @flow(name="etl-process")
 def etl_flow():
     cfg = parse_cfg()
-    df = fetch_bq_data(cfg)
-    return df
+    fetch_bq_data(cfg)
 
 
 if __name__ == "__main__":

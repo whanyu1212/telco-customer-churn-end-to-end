@@ -15,3 +15,10 @@ dataset_id:
 
 table_id:
   telco-customer_churn
+
+cat_columns:
+  ['gender', 'Partner', 'Dependents',
+    'PhoneService','MultipleLines','InternetService',
+    'OnlineSecurity','OnlineBackup','DeviceProtection',
+    'TechSupport','StreamingTV','StreamingMovies',
+    'Contract','PaperlessBilling','PaymentMethod']
