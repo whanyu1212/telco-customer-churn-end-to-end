@@ -25,18 +25,25 @@ from util import parse_cfg
 
 
 @task
-def objective(df, split_size, RS, trial, _best_auc=0):
+def split_data(df, split_size, random_state):
     X, y = df.drop("Churn", axis=1), df.filter(items=["Churn"])
     X_train, _, y_train, _ = train_test_split(
-        X, y, test_size=split_size, random_state=RS
+        X, y, test_size=split_size, random_state=random_state
     )
+    return X_train, y_train
+
+
+@task
+def objective(X_train, y_train, trial, _best_auc=0):
 
     try:
-        EXPERIMENT_ID = mlflow.create_experiment('xgboost-optuna')
+        EXPERIMENT_ID = mlflow.create_experiment("xgboost-optuna")
     except:
-        EXPERIMENT_ID = dict(mlflow.get_experiment_by_name('xgboost-optuna'))['experiment_id']
+        EXPERIMENT_ID = dict(mlflow.get_experiment_by_name("xgboost-optuna"))[
+            "experiment_id"
+        ]
 
-    with mlflow.start_run(experiment_id=EXPERIMENT_ID,nested=True):
+    with mlflow.start_run(experiment_id=EXPERIMENT_ID, nested=True):
         params = {
             "objective": "binary:logistic",
             "eval_metric": "aucpr",
@@ -68,7 +75,7 @@ def objective(df, split_size, RS, trial, _best_auc=0):
                 verbose=0,
             )
             y_pred = xgb_cl.predict(X_valid_sub)
-            aucpr = roc_auc_score(y_pred, y_valid_sub)
+            aucpr = roc_auc_score(y_valid_sub, y_pred)
             aucpr_scores.append(aucpr)
 
         mean_aucpr = np.mean(aucpr_scores)
@@ -92,32 +99,38 @@ def xgb_tuning():
     cfg = parse_cfg()
     split_size, RS = cfg["split_size"], cfg["RS"]
     df = pd.read_csv("./data/df_cleaned.csv")
+
+    X_train, y_train = split_data(df, split_size, RS)
+
     model_name = "telco-churn-xgb"
     model_version = 1
 
     study = optuna.create_study(study_name="test", direction="maximize")
     study.optimize(
-        lambda trial: objective(df, split_size, RS, trial, _best_auc=0), n_trials=30
+        lambda trial: objective(X_train, y_train, trial, _best_auc=0), n_trials=30
     )
     best_trial = study.best_trial
     best_params = best_trial.params
     with open("./output/best_param.json", "w") as outfile:
         json.dump(best_params, outfile)
-    
-    runs_df = mlflow.search_runs(experiment_ids=dict(mlflow.get_experiment_by_name('xgboost-optuna'))['experiment_id'], order_by=['metrics.validation_aucroc DESC'])
+
+    runs_df = mlflow.search_runs(
+        experiment_ids=dict(mlflow.get_experiment_by_name("xgboost-optuna"))[
+            "experiment_id"
+        ],
+        order_by=["metrics.validation_aucroc DESC"],
+    )
     best_run = runs_df.iloc[0]
-    best_run_id = best_run['run_id']
+    best_run_id = best_run["run_id"]
     # best_artifact_uri = best_run['artifact_uri']
     # best_model = mlflow.xgboost.load_model('runs:/' + best_run_id + '/xgboost_model')
-    _ = mlflow.register_model(
-    'runs:/' + best_run_id + '/xgboost_model', model_name)
+    _ = mlflow.register_model("runs:/" + best_run_id + "/xgboost_model", model_name)
 
     model = mlflow.pyfunc.load_model(model_uri=f"models:/{model_name}/{model_version}")
     print(model)
     client.transition_model_version_stage(
         name=model_name, version=model_version, stage="Production"
     )
-    
 
 
 if __name__ == "__main__":
